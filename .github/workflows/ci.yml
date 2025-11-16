@@ -29,9 +29,33 @@ jobs:
         run: |
           docker run -d -p 8000:8000 --name pose-analyzer-container pose-analyzer
           sleep 5
-          docker logs pose-analyzer-container   # <-- ADD THIS
+          docker logs pose-analyzer-container
           curl -f http://localhost:8000/ || exit 1
           docker stop pose-analyzer-container
           docker rm pose-analyzer-container
 
-          
+      # -----------------------------
+      # NEW: Login to GHCR
+      # -----------------------------
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # -----------------------------
+      # NEW: Tag the image for GHCR
+      # -----------------------------
+      - name: Tag Docker image
+        run: |
+          IMAGE_NAME=ghcr.io/${{ github.repository_owner }}/dance-pose-analyser:latest
+          docker tag pose-analyzer $IMAGE_NAME
+
+      # -----------------------------
+      # NEW: Push image to GHCR
+      # -----------------------------
+      - name: Push Docker image
+        run: |
+          IMAGE_NAME=ghcr.io/${{ github.repository_owner }}/dance-pose-analyser:latest
+          docker push $IMAGE_NAME
