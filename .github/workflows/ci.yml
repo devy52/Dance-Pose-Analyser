@@ -49,7 +49,7 @@ jobs:
       # -----------------------------
       - name: Tag Docker image
         run: |
-          IMAGE_NAME=ghcr.io/${{ github.repository_owner }}/dance-pose-analyser:latest
+          IMAGE_NAME=ghcr.io/${{ github.actor }}/dance-pose-analyser:latest
           docker tag pose-analyzer $IMAGE_NAME
 
       # -----------------------------
@@ -57,5 +57,5 @@ jobs:
       # -----------------------------
       - name: Push Docker image
         run: |
-          IMAGE_NAME=ghcr.io/${{ github.repository_owner }}/dance-pose-analyser:latest
+          IMAGE_NAME=ghcr.io/${{ github.actor }}/dance-pose-analyser:latest
           docker push $IMAGE_NAME
