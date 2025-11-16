@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+uploads/
+outputs/
+.env
+*.mp4
+tests/data/*.mp4
+pose_landmarker_heavy.task
