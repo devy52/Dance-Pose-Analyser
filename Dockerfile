@@ -8,10 +8,13 @@ RUN apt-get update && apt-get install -y \
     libxext6 \
     libgl1 \
     libavcodec-extra \
+    libprotobuf-dev \
+    protobuf-compiler \
+    build-essential \
     wget \
     && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /app
+WORKDIR /dance_pose_analyser
 
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt

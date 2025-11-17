@@ -12,7 +12,7 @@ BASE_DIR = Path(__file__).resolve().parent
 
 UPLOAD_DIR = BASE_DIR / "uploads"
 OUTPUT_DIR = BASE_DIR / "outputs"
-MODEL_PATH = BASE_DIR / "model" / "pose_landmarker_heavy.task"
+MODEL_PATH = BASE_DIR / "app" / "model" / "pose_landmarker_heavy.task"
 
 UPLOAD_DIR.mkdir(exist_ok=True)
 OUTPUT_DIR.mkdir(exist_ok=True)
@@ -62,7 +62,16 @@ app = FastAPI(title="Dance Pose Analyzer", lifespan=lifespan)
 app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
 templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 
-processor = PoseProcessor(str(MODEL_PATH))
+# Lazy-load processor on first use (avoids startup failure if model is missing)
+processor = None
+
+def get_processor():
+    global processor
+    if processor is None:
+        if not Path(MODEL_PATH).exists():
+            raise RuntimeError(f"Model file not found at {MODEL_PATH}")
+        processor = PoseProcessor(str(MODEL_PATH))
+    return processor
 
 
 @app.get("/")
@@ -70,9 +79,14 @@ def home(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
 
+@app.get("/health")
+def health():
+    return JSONResponse({"status": "ok"})
+
+
 @app.post("/upload")
 async def upload_video(file: UploadFile = File(...)):
-    if not file.filename.lower().endswith((".mp4", ".mov", ".avi", ".mkv")):
+    if not file.filename or not file.filename.lower().endswith((".mp4", ".mov", ".avi", ".mkv")):
         raise HTTPException(400, "Invalid video type")
 
     uid = uuid.uuid4().hex
@@ -86,7 +100,11 @@ async def upload_video(file: UploadFile = File(...)):
     # Convert input to H.264 (browser + OpenCV safe)
     h264_input_path = convert_to_h264(str(input_path))
 
-    success = processor.process_video(h264_input_path, str(output_path))
+    try:
+        processor_instance = get_processor()
+        success = processor_instance.process_video(h264_input_path, str(output_path))
+    except Exception as e:
+        raise HTTPException(500, f"Processing failed: {str(e)}")
 
     if not success:
         raise HTTPException(500, "Processing failed")
