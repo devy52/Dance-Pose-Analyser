@@ -2,7 +2,7 @@
 
 A computer vision and machine learning toolkit for analyzing dance poses from video or image inputs. This repository leverages keypoint detection and pose estimation to help dancers and choreographers assess movement quality, alignment, and performance.
 
-LIVE on : http://3.106.120.95:8000
+LIVE on : http://16.176.158.73:8000/
 
 ---
 
